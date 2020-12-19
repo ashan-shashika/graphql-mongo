@@ -1,6 +1,45 @@
 {
+  "name": "commercial-host",
+  "main": "index.js",
+  "scripts": {
+    "build": "rm -rf ./dist; babel ./src --out-dir ./dist --copy-files",
+    "prod": "node ./dist/index.js",
+    "dev": "nodemon --exec babel-node src/index.js",
+    "lint": "prettier --check 'src/**/*.js' 'package.json'  && eslint --fix src/*",
+    "format": "prettier --check 'src/**/*.js' 'package.json' --write"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ashan-shashika/commercial-host.git"
+  },
+  "author": "ashan-shashika",
+  "bugs": {
+    "url": "https://github.com/ashan-shashika/commercial-host.git/issues"
+  },
+  "license": "ISC",
   "dependencies": {
     "apollo-server-express": "^2.19.0",
     "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.12.10",
+    "@babel/core": "^7.12.10",
+    "@babel/node": "^7.12.10",
+    "@babel/plugin-transform-runtime": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
+    "babel-eslint": "^10.1.0",
+    "babel-node": "^0.0.1-security",
+    "eslint": "^7.16.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-prettier": "^7.1.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-prettier": "^3.3.0",
+    "nodemon": "^2.0.6",
+    "prettier": "^2.2.1"
   }
 }
