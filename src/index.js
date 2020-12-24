@@ -1,25 +1,30 @@
 import express from 'express';
-import { ApolloServer, gql } from 'apollo-server-express';
-// Construct a schema, using GraphQL schema language
-const typeDefs = gql`
-  type Query {
-    hello: String
-  }
-`;
+import { ApolloServer } from 'apollo-server-express';
+import mongoose from 'mongoose';
+import schema from './graphql';
+import model from './models';
 
-// Provide resolver functions for your schema fields
-const resolvers = {
-  Query: {
-    hello: () => 'Hello world!',
-  },
+const startServer = async () => {
+  const server = new ApolloServer({
+    typeDefs: schema.typeDefs,
+    resolvers: schema.resolvers,
+    context: () => ({ model }),
+  });
+
+  const app = express();
+  server.applyMiddleware({ app });
+
+  // DB connection
+  await mongoose.connect('mongodb://localhost:27017/test', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+  });
+
+  app.listen({ port: 4000 }, () =>
+    // eslint-disable-next-line no-console
+    console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`),
+  );
 };
 
-const server = new ApolloServer({ typeDefs, resolvers });
-
-const app = express();
-server.applyMiddleware({ app });
-
-app.listen({ port: 4000 }, () =>
-  // eslint-disable-next-line no-console
-  console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`),
-);
+startServer();
