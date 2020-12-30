@@ -1,14 +1,39 @@
+import 'dotenv/config';
 import express from 'express';
 import { ApolloServer } from 'apollo-server-express';
 import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
 import schema from './graphql';
 import model from './models';
+
+const getCurrentUserId = async ({ headers }) => {
+  const matcher = /^Bearer .+$/gi;
+  const { authorization = null } = headers;
+
+  if (authorization && matcher.test(authorization)) {
+    const [, token] = authorization.split(/\s+/);
+
+    try {
+      if (token) {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        return decoded.id;
+      }
+    } catch (e) {
+      // We do nothing so it returns null
+    }
+  }
+
+  return null;
+};
 
 const startServer = async () => {
   const server = new ApolloServer({
     typeDefs: schema.typeDefs,
     resolvers: schema.resolvers,
-    context: () => ({ model }),
+    context: async ({ req }) => {
+      const currentUser = await getCurrentUserId(req);
+      return { model, currentUser };
+    },
   });
 
   const app = express();
