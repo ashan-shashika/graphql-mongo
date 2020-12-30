@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import schema from './graphql';
 import model from './models';
+import AuthenticatedDirective from './graphql/directives/authenticated';
 
 const getCurrentUserId = async ({ headers }) => {
   const matcher = /^Bearer .+$/gi;
@@ -30,6 +31,9 @@ const startServer = async () => {
   const server = new ApolloServer({
     typeDefs: schema.typeDefs,
     resolvers: schema.resolvers,
+    schemaDirectives: {
+      authenticated: AuthenticatedDirective,
+    },
     context: async ({ req }) => {
       const currentUser = await getCurrentUserId(req);
       return { model, currentUser };

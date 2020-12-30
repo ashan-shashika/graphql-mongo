@@ -2,6 +2,7 @@ import { gql } from 'apollo-server-express';
 import jwt from 'jsonwebtoken';
 
 const typeDefs = gql`
+  directive @authenticated on OBJECT | FIELD_DEFINITION
   type User {
     id: ID
     firstName: String
@@ -10,7 +11,7 @@ const typeDefs = gql`
   }
   type Query {
     me: User
-    users: [User]
+    users: [User] @authenticated
   }
   type LoggedUser {
     user: User
