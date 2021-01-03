@@ -19,6 +19,7 @@ const UserSchema = new Schema({
     minlength: 7,
     maxlength: 42,
   },
+  resetPasswordToken: String,
 });
 
 UserSchema.path('email').validate(async (email) => {
@@ -45,6 +46,10 @@ UserSchema.pre('updateOne', async function hashPassword(next) {
 
 UserSchema.method('comparePassword', function comparePassword(password) {
   return bcrypt.compare(password, this.password);
+});
+
+UserSchema.virtual('id').get(function getId() {
+  return this._id;
 });
 
 const bcryptPassword = async (password, next) => {

@@ -31,7 +31,9 @@
     "graphql-tools": "^7.0.2",
     "jsonwebtoken": "^8.5.1",
     "lodash.merge": "^4.6.2",
-    "mongoose": "^5.11.8"
+    "mongoose": "^5.11.8",
+    "nodemailer": "^6.4.17",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.12.10",

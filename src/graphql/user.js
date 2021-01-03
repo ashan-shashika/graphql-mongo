@@ -1,5 +1,7 @@
 import { gql } from 'apollo-server-express';
 import jwt from 'jsonwebtoken';
+import { v4 } from 'uuid';
+import sendEmail from '../utils/sendEmail';
 
 const typeDefs = gql`
   directive @authenticated on OBJECT | FIELD_DEFINITION
@@ -22,6 +24,7 @@ const typeDefs = gql`
     login(info: UserLoginInputs): LoggedUser
     updateUser(info: UpdateUserInput): User @authenticated
     changePassword(info: ChangePasswordInput): LoggedUser @authenticated
+    forgetPassword(email: String!): Boolean
   }
   input CreateUserInput {
     firstName: String!
@@ -112,6 +115,20 @@ const resolvers = {
       // eslint-disable-next-line no-underscore-dangle
       const token = generatetoken(loggedUser.email, loggedUser._id);
       return { user: loggedUser, token };
+    },
+    forgetPassword: async (_, { email }, { model: { User } }) => {
+      const user = await User.findOne({ email });
+      if (!user) {
+        // the email is not in the db
+        return false;
+      }
+      const token = v4();
+      // add token to db
+      await User.updateOne({ _id: user.id }, { resetPasswordToken: token });
+      // send email
+      const html = `<a href="http://localhost:3000/reset-password/${token}">reset password</a>`;
+      await sendEmail({ to: user.email, subject: 'Reset password', html });
+      return true;
     },
   },
 };
