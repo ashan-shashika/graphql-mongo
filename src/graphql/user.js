@@ -25,6 +25,7 @@ const typeDefs = gql`
     updateUser(info: UpdateUserInput): User @authenticated
     changePassword(info: ChangePasswordInput): LoggedUser @authenticated
     forgetPassword(email: String!): Boolean
+    resetPassword(token: String!, password: String!): String
   }
   input CreateUserInput {
     firstName: String!
@@ -129,6 +130,12 @@ const resolvers = {
       const html = `<a href="http://localhost:3000/reset-password/${token}">reset password</a>`;
       await sendEmail({ to: user.email, subject: 'Reset password', html });
       return true;
+    },
+    resetPassword: async (_, { token, password }, { model: { User } }) => {
+      const user = await User.findOne({ resetPasswordToken: token });
+      if (!user) throw new Error('user no longer exists');
+      await User.updateOne({ _id: user.id }, { password });
+      return 'password successfully updated ';
     },
   },
 };
