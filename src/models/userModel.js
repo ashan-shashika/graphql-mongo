@@ -20,6 +20,7 @@ const UserSchema = new Schema({
     maxlength: 42,
   },
   resetPasswordToken: String,
+  profileImage: String,
 });
 
 UserSchema.path('email').validate(async (email) => {

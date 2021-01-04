@@ -2,6 +2,7 @@ import { gql } from 'apollo-server-express';
 import jwt from 'jsonwebtoken';
 import { v4 } from 'uuid';
 import sendEmail from '../utils/sendEmail';
+import upload from '../utils/upload';
 
 const typeDefs = gql`
   directive @authenticated on OBJECT | FIELD_DEFINITION
@@ -37,6 +38,7 @@ const typeDefs = gql`
     email: String
     firstName: String
     lastName: String
+    profileImage: Upload
   }
   input UserLoginInputs {
     email: String!
@@ -71,14 +73,22 @@ const resolvers = {
       }
     },
     updateUser: async (_, { info }, { model: { User }, currentUser }) => {
+      const userInfo = { ...info };
       // check new email exists
       if (info.email) {
         const isEmailExists = await User.findOne({ email: info.email });
         if (isEmailExists) throw new Error('Email already exists');
       }
+      // upload Image
+      if (info.profileImage) {
+        const imagePath = await upload(info.profileImage);
+        if (imagePath) {
+          userInfo.profileImage = imagePath;
+        }
+      }
       // update user
       try {
-        const res = await User.updateOne({ _id: currentUser }, { ...info });
+        const res = await User.updateOne({ _id: currentUser }, { ...userInfo });
         // check updated DB record
         if (res.n) {
           return User.findOne({ _id: currentUser }).exec();
