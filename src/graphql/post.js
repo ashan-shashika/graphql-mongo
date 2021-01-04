@@ -7,7 +7,7 @@ const typeDefs = gql`
     author: User
   }
   extend type Query {
-    allPosts: [Post]
+    allPosts: [Post] @authenticated
   }
   extend type Mutation {
     addPost(title: String!, description: String): Post @authenticated

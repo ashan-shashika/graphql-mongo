@@ -49,6 +49,7 @@ const startServer = async () => {
     useUnifiedTopology: true,
     useCreateIndex: true,
   });
+  // mongoose.set('debug', true);
 
   app.listen({ port: 4000 }, () =>
     // eslint-disable-next-line no-console

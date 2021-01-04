@@ -12,6 +12,10 @@ const PostSchema = new Schema({
     required: true,
   },
 });
+PostSchema.virtual('id').get(function getId() {
+  // eslint-disable-next-line no-underscore-dangle
+  return this._id;
+});
 const Post = mongoose.model('Post', PostSchema);
 
 export default Post;

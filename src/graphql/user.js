@@ -11,6 +11,7 @@ const typeDefs = gql`
     firstName: String
     lastName: String
     email: String
+    posts: [Post] @authenticated
   }
   type LoggedUser {
     user: User
@@ -52,6 +53,9 @@ const typeDefs = gql`
 `;
 
 const resolvers = {
+  User: {
+    posts: (user, _, { model: { Post } }) => Post.find({ author: user.id }),
+  },
   Query: {
     users: (_, __, { model: { User } }) => User.find(),
     me: async (_, __, { model: { User }, currentUser }) => {
