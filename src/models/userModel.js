@@ -21,6 +21,12 @@ const UserSchema = new Schema({
   },
   resetPasswordToken: String,
   profileImage: String,
+  posts: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Post',
+    },
+  ],
 });
 
 UserSchema.path('email').validate(async (email) => {
