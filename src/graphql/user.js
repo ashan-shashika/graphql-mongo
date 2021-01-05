@@ -1,11 +1,13 @@
 import { gql } from 'apollo-server-express';
 import jwt from 'jsonwebtoken';
 import { v4 } from 'uuid';
+import { GraphQLUpload } from 'graphql-upload';
 import sendEmail from '../utils/sendEmail';
 import upload from '../utils/upload';
 
 const typeDefs = gql`
   directive @authenticated on OBJECT | FIELD_DEFINITION
+  scalar Upload
   type User {
     id: ID
     firstName: String
@@ -19,7 +21,7 @@ const typeDefs = gql`
   }
   type Query {
     me: User
-    users: [User] @authenticated
+    users: [User]
   }
   type Mutation {
     createUser(info: CreateUserInput): User
@@ -53,6 +55,7 @@ const typeDefs = gql`
 `;
 
 const resolvers = {
+  Upload: GraphQLUpload,
   User: {
     posts: (user, _, { model: { Post } }) => Post.find({ author: user.id }),
   },

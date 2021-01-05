@@ -3519,6 +3519,13 @@ graphql-extensions@^0.12.6:
     apollo-server-env "^2.4.5"
     apollo-server-types "^0.6.1"
 
+graphql-middleware@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/graphql-middleware/-/graphql-middleware-6.0.0.tgz#58eef2e2920a4ba7a98de6e92818cb67c10835d5"
+  integrity sha512-qMM/Jgvhl+F5Chmb9nw2NIswS7Jk43G9byyd3qdegsh68KTTkt5HMqMVRS8P7MsujE6Ygmti+tvf9NtStINGLA==
+  dependencies:
+    "@graphql-tools/schema" "^7.1.2"
+
 graphql-subscriptions@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/graphql-subscriptions/-/graphql-subscriptions-1.1.0.tgz#5f2fa4233eda44cf7570526adfcf3c16937aef11"

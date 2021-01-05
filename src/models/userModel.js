@@ -27,6 +27,10 @@ const UserSchema = new Schema({
       ref: 'Post',
     },
   ],
+  role: {
+    type: Schema.Types.ObjectId,
+    ref: 'Role',
+  },
 });
 
 UserSchema.path('email').validate(async (email) => {

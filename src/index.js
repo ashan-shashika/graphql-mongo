@@ -1,11 +1,13 @@
 import 'dotenv/config';
 import express from 'express';
-import { ApolloServer } from 'apollo-server-express';
+import { ApolloServer, makeExecutableSchema } from 'apollo-server-express';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
+import { applyMiddleware } from 'graphql-middleware';
 import schema from './graphql';
 import model from './models';
 import AuthenticatedDirective from './graphql/directives/authenticated';
+import middleware from './middleware';
 
 const getCurrentUserId = async ({ headers }) => {
   const matcher = /^Bearer .+$/gi;
@@ -27,10 +29,15 @@ const getCurrentUserId = async ({ headers }) => {
   return null;
 };
 
+const graphqlSchema = makeExecutableSchema({
+  typeDefs: schema.typeDefs,
+  resolvers: schema.resolvers,
+});
+const schemaWithMiddleware = applyMiddleware(graphqlSchema, middleware);
+
 const startServer = async () => {
   const server = new ApolloServer({
-    typeDefs: schema.typeDefs,
-    resolvers: schema.resolvers,
+    schema: schemaWithMiddleware,
     schemaDirectives: {
       authenticated: AuthenticatedDirective,
     },

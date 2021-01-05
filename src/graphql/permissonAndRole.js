@@ -54,7 +54,7 @@ const resolvers = {
         // validate permission ids
         let allPermissions = await Permission.find({}, 'id');
         allPermissions = allPermissions.map((per) => per.id.toString());
-        const isValidIds = allPermissions.every((id) => permissionIds.includes(id));
+        const isValidIds = permissionIds.every((id) => allPermissions.includes(id));
         if (!isValidIds) {
           throw new Error('Invalid permission found');
         }
