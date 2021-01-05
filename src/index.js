@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import schema from './graphql';
 import model from './models';
 import AuthenticatedDirective from './graphql/directives/authenticated';
+import createHasPermissionDirective from './graphql/directives/hasPermission';
 
 const getCurrentUserId = async ({ headers }) => {
   const matcher = /^Bearer .+$/gi;
@@ -32,6 +33,7 @@ const startServer = async () => {
     typeDefs: schema.typeDefs,
     resolvers: schema.resolvers,
     schemaDirectives: {
+      hasPermission: createHasPermissionDirective(model),
       authenticated: AuthenticatedDirective,
     },
     context: async ({ req }) => {

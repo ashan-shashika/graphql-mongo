@@ -3,9 +3,11 @@ import jwt from 'jsonwebtoken';
 import { v4 } from 'uuid';
 import sendEmail from '../utils/sendEmail';
 import upload from '../utils/upload';
+import { userRoles } from '../constants';
 
 const typeDefs = gql`
   directive @authenticated on OBJECT | FIELD_DEFINITION
+  directive @hasPermission(permission: String) on OBJECT | FIELD_DEFINITION
   type User {
     id: ID
     firstName: String
@@ -19,7 +21,7 @@ const typeDefs = gql`
   }
   type Query {
     me: User
-    users: [User] @authenticated
+    users: [User] @hasPermission(permission: "read:any_user")
   }
   type Mutation {
     createUser(info: CreateUserInput): User
@@ -64,11 +66,14 @@ const resolvers = {
     },
   },
   Mutation: {
-    createUser: async (_, { info }, { model: { User } }) => {
+    createUser: async (_, { info }, { model: { User, Role } }) => {
       const isUserExists = await User.findOne({ email: info.email });
       if (isUserExists) {
         throw new Error('Email already exists');
       }
+      // add "USER" role for new user
+      // eslint-disable-next-line no-param-reassign
+      info.role = await Role.findOne({ name: userRoles.USER }, 'id');
       try {
         const newUser = await User.create(info);
         return newUser;
