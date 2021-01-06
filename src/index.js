@@ -3,6 +3,8 @@ import express from 'express';
 import { ApolloServer } from 'apollo-server-express';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import schema from './graphql';
 import model from './models';
 import AuthenticatedDirective from './graphql/directives/authenticated';
@@ -16,8 +18,8 @@ const getCurrentUserId = async ({ headers }) => {
 
     try {
       if (token) {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        return decoded.id;
+        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        return decoded.userId;
       }
     } catch (e) {
       // We do nothing so it returns null
@@ -34,13 +36,20 @@ const startServer = async () => {
     schemaDirectives: {
       authenticated: AuthenticatedDirective,
     },
-    context: async ({ req }) => {
+    context: async ({ req, res }) => {
       const currentUser = await getCurrentUserId(req);
-      return { model, currentUser };
+      return { model, currentUser, res, req };
     },
   });
 
   const app = express();
+  app.use(
+    cors({
+      origin: 'http://localhost:3000',
+      credentials: true,
+    }),
+  );
+  app.use(cookieParser());
   server.applyMiddleware({ app });
 
   // DB connection

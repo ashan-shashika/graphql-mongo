@@ -1,8 +1,9 @@
 import { gql } from 'apollo-server-express';
-import jwt from 'jsonwebtoken';
 import { v4 } from 'uuid';
+import jwt from 'jsonwebtoken';
 import sendEmail from '../utils/sendEmail';
 import upload from '../utils/upload';
+import generatetoken from '../utils/auth';
 
 const typeDefs = gql`
   directive @authenticated on OBJECT | FIELD_DEFINITION
@@ -21,6 +22,9 @@ const typeDefs = gql`
     me: User
     users: [User] @authenticated
   }
+  type Token {
+    token: String
+  }
   type Mutation {
     createUser(info: CreateUserInput): User
     login(info: UserLoginInputs): LoggedUser
@@ -28,6 +32,7 @@ const typeDefs = gql`
     changePassword(info: ChangePasswordInput): LoggedUser @authenticated
     forgetPassword(email: String!): Boolean
     resetPassword(token: String!, password: String!): String
+    refreshToken: Token
   }
   input CreateUserInput {
     firstName: String!
@@ -103,15 +108,18 @@ const resolvers = {
         throw new Error(err);
       }
     },
-    login: async (_, { info }, { model: { User } }) => {
+    login: async (_, { info }, { res, model: { User } }) => {
       const loginUser = await User.findOne({ email: info.email });
+      // user not found in DB
       if (!loginUser) throw new Error('Invalid email or password');
       const isValidPassword = await loginUser.comparePassword(info.password);
+      // password not matched
       if (!isValidPassword) throw new Error('Invalid email or password');
-      // eslint-disable-next-line no-underscore-dangle
-      const token = generatetoken(loginUser.email, loginUser._id);
-
-      return { user: loginUser, token };
+      // create tokens
+      const { accessToken, refreshToken } = generatetoken(loginUser);
+      // save refreshtoken in cookie
+      res.cookie('refresh-token', refreshToken);
+      return { user: loginUser, token: accessToken };
     },
     changePassword: async (_, { info }, { model: { User }, currentUser }) => {
       const loggedUser = await User.findOne({ _id: currentUser });
@@ -151,13 +159,25 @@ const resolvers = {
       await User.updateOne({ _id: user.id }, { password });
       return 'password successfully updated ';
     },
+    refreshToken: async (_, __, { req, res, model }) => {
+      const oldToken = req.cookies['refresh-token'];
+      let data;
+      try {
+        data = jwt.verify(oldToken, process.env.REFRESH_TOKEN_SECRET);
+      } catch (err) {
+        return { token: '' };
+      }
+      const user = await model.User.findOne({ _id: data.userId });
+      // token has been invalidated
+      if (!user) {
+        return { token: '' };
+      }
+      // create tokens
+      const { accessToken, refreshToken } = generatetoken(user);
+      // save refreshtoken in cookie
+      res.cookie('refresh-token', refreshToken, { maxAge: 60 * 60 * 24 * 14 });
+      return { token: accessToken };
+    },
   },
-};
-
-const generatetoken = (email, id) => {
-  const token = jwt.sign({ email, id }, process.env.JWT_SECRET, {
-    expiresIn: '7d',
-  });
-  return token;
 };
 export default { typeDefs, resolvers };
